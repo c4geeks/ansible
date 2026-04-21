@@ -1,0 +1,53 @@
+# Ansible runtime
+*.retry
+.vault_pass
+.vault_pass.txt
+vault_pass_*
+*.vault
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.tox/
+
+# Ansible Galaxy installed content (tracked via requirements.yml per folder)
+collections/ansible_collections/
+roles/*/
+!roles/local/
+!roles/.keep
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Secrets / local overrides
+.env
+.env.local
+secrets.yml
+*_secret.yml
+inventory.local
+hosts.local
+
+# Terraform state (for terraform-ansible/ examples)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.auto.tfvars
+
+# Molecule
+.molecule/
+molecule/*/molecule.yml.bak
+
+# Logs
+*.log
+ansible.log

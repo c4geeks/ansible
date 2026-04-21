@@ -1,0 +1,61 @@
+---
+- name: Include OS-family specific install tasks
+  ansible.builtin.include_tasks: "install_{{ ansible_os_family | lower }}.yml"
+
+- name: Render docroot
+  ansible.builtin.file:
+    path: "{{ nginx_site_root }}"
+    state: directory
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: "0755"
+
+- name: Render index page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: "{{ nginx_site_root }}/index.html"
+    owner: "{{ nginx_user }}"
+    group: "{{ nginx_group }}"
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Render virtual host
+  ansible.builtin.template:
+    src: site.conf.j2
+    dest: "{{ nginx_site_conf_path }}/{{ nginx_site_name }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Validate nginx config (fails fast on syntax error)
+  ansible.builtin.command: nginx -t
+  register: nginx_validate
+  changed_when: false
+
+- name: Enable and start nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Configure firewall (skipped when running inside a container)
+  when:
+    - nginx_site_manage_firewall
+    - ansible_virtualization_type not in ['container', 'docker', 'podman']
+  block:
+    - name: Open HTTP port (firewalld, RHEL family)
+      ansible.posix.firewalld:
+        port: "{{ nginx_site_listen_port }}/tcp"
+        zone: "{{ nginx_site_open_firewall_zone }}"
+        permanent: true
+        immediate: true
+        state: enabled
+      when: ansible_os_family == 'RedHat'
+
+    - name: Open HTTP port (ufw, Debian family)
+      community.general.ufw:
+        rule: allow
+        port: "{{ nginx_site_listen_port | string }}"
+        proto: tcp
+      when: ansible_os_family == 'Debian'

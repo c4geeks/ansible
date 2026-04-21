@@ -1,0 +1,63 @@
+---
+- name: Verify
+  hosts: all
+  become: false
+  gather_facts: true
+
+  tasks:
+    - name: Collect package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: nginx package is installed
+      ansible.builtin.assert:
+        that:
+          - "'nginx' in ansible_facts.packages"
+        fail_msg: "nginx package is missing"
+        success_msg: "nginx package present"
+
+    - name: Read rendered vhost config
+      ansible.builtin.slurp:
+        src: /etc/nginx/conf.d/example.conf
+      register: vhost
+
+    - name: vhost config contains expected directives
+      ansible.builtin.assert:
+        that:
+          - "'rocky.test' in (vhost.content | b64decode)"
+          - "'/healthz' in (vhost.content | b64decode)"
+
+    - name: nginx is active
+      ansible.builtin.systemd:
+        name: nginx
+      register: svc
+
+    - name: assert nginx active and running
+      ansible.builtin.assert:
+        that:
+          - svc.status.ActiveState == 'active'
+          - svc.status.SubState == 'running'
+
+    - name: Hit the index page
+      ansible.builtin.uri:
+        url: "http://127.0.0.1/"
+        return_content: true
+        status_code: 200
+      register: idx
+
+    - name: Index page contains site title
+      ansible.builtin.assert:
+        that:
+          - "'tested by Molecule' in idx.content"
+
+    - name: Hit the health endpoint
+      ansible.builtin.uri:
+        url: "http://127.0.0.1/healthz"
+        status_code: 200
+        return_content: true
+      register: hz
+
+    - name: Health endpoint returns ok
+      ansible.builtin.assert:
+        that:
+          - hz.content == "ok\n"

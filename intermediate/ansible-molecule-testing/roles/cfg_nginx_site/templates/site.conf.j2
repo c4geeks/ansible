@@ -1,0 +1,20 @@
+server {
+    listen {{ nginx_site_listen_port }};
+    listen [::]:{{ nginx_site_listen_port }};
+
+    server_name {{ nginx_site_server_name }};
+    root {{ nginx_site_root }};
+    index index.html;
+
+    access_log /var/log/nginx/{{ nginx_site_name }}_access.log;
+    error_log  /var/log/nginx/{{ nginx_site_name }}_error.log;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    location = /healthz {
+        return 200 "ok\n";
+        access_log off;
+    }
+}

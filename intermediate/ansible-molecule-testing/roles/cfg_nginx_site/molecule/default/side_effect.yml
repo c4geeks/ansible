@@ -1,0 +1,24 @@
+---
+- name: Side effect: simulate a manual config drift
+  hosts: all
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Stop nginx (simulating an operator typing the wrong systemctl)
+      ansible.builtin.systemd:
+        name: nginx
+        state: stopped
+
+    - name: Vandalise the vhost (simulating a manual edit gone wrong)
+      ansible.builtin.copy:
+        content: "# I broke this on purpose\n"
+        dest: /etc/nginx/conf.d/example.conf
+        mode: "0644"
+
+- name: Re-converge to prove the role self-heals the drift
+  hosts: all
+  become: false
+  tasks:
+    - name: Re-apply cfg_nginx_site role
+      ansible.builtin.include_role:
+        name: cfg_nginx_site

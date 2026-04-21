@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{ nginx_site_index_title }}</title>
+<style>body{font-family:system-ui;max-width:640px;margin:4rem auto;padding:0 1rem}</style>
+</head>
+<body>
+<h1>{{ nginx_site_index_title }}</h1>
+<p>Served by nginx on <strong>{{ ansible_distribution }} {{ ansible_distribution_version }}</strong>.</p>
+<p>Site: <code>{{ nginx_site_server_name }}</code></p>
+</body>
+</html>

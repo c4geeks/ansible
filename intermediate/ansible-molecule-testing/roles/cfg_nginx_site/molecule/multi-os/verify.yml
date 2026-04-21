@@ -1,0 +1,39 @@
+---
+- name: Verify
+  hosts: all
+  become: false
+  gather_facts: true
+
+  tasks:
+    - name: Collect package facts
+      ansible.builtin.package_facts:
+        manager: auto
+
+    - name: nginx package is present on every host
+      ansible.builtin.assert:
+        that:
+          - "'nginx' in ansible_facts.packages"
+
+    - name: nginx is active
+      ansible.builtin.systemd:
+        name: nginx
+      register: svc
+
+    - name: nginx is running
+      ansible.builtin.assert:
+        that:
+          - svc.status.ActiveState == 'active'
+          - svc.status.SubState == 'running'
+
+    - name: Hit local index
+      ansible.builtin.uri:
+        url: "http://127.0.0.1/"
+        return_content: true
+        status_code: 200
+      register: idx
+
+    - name: Index page reflects this host's variables
+      ansible.builtin.assert:
+        that:
+          - "(nginx_site_index_title in idx.content)"
+          - "(ansible_distribution in idx.content)"

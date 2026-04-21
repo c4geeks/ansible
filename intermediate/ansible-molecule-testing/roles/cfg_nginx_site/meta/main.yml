@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: cfg_nginx_site
+  namespace: c4geeks
+  author: ComputingForGeeks
+  description: Install nginx and publish a single virtual host. Demo role for the Molecule testing article.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+        - "10"
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+    - name: Debian
+      versions:
+        - bookworm
+  galaxy_tags:
+    - web
+    - nginx
+    - testing
+    - molecule
+dependencies: []

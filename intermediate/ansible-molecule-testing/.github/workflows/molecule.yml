@@ -1,0 +1,33 @@
+name: molecule
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: [default, multi-os]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Molecule and friends
+        run: |
+          pip install --upgrade pip
+          pip install ansible-core==2.18.* molecule molecule-plugins[podman] ansible-lint
+
+      - name: Lint
+        run: ansible-lint roles/cfg_nginx_site/
+
+      - name: Test scenario ${{ matrix.scenario }}
+        working-directory: roles/cfg_nginx_site
+        run: molecule test -s ${{ matrix.scenario }}

@@ -1,0 +1,8 @@
+---
+nginx_site_name: example
+nginx_site_server_name: "{{ ansible_fqdn | default('localhost') }}"
+nginx_site_listen_port: 80
+nginx_site_root: "/var/www/{{ nginx_site_name }}"
+nginx_site_index_title: "Hello from {{ nginx_site_server_name }}"
+nginx_site_manage_firewall: true
+nginx_site_open_firewall_zone: public

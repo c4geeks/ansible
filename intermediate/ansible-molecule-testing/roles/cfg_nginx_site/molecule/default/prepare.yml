@@ -1,0 +1,19 @@
+---
+- name: Prepare
+  hosts: all
+  become: false
+  gather_facts: true
+  tasks:
+    - name: Refresh apt cache (Debian family)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+
+    - name: Install diagnostics tools used by the verifier
+      ansible.builtin.package:
+        name:
+          - curl
+          - "{{ 'procps-ng' if ansible_os_family == 'RedHat' else 'procps' }}"
+          - "{{ 'iproute' if ansible_os_family == 'RedHat' else 'iproute2' }}"
+        state: present

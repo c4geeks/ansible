@@ -1,0 +1,14 @@
+---
+- name: Cleanup
+  hosts: all
+  become: false
+  gather_facts: false
+  tasks:
+    - name: Drop nginx access/error logs (keeps destroy snappy)
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/log/nginx/example_access.log
+        - /var/log/nginx/example_error.log
+      ignore_errors: true

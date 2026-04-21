@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: false
+  tasks:
+    - name: Apply cfg_nginx_site role
+      ansible.builtin.include_role:
+        name: cfg_nginx_site

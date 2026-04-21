@@ -1,0 +1,61 @@
+---
+role_name_check: 1
+
+dependency:
+  name: galaxy
+  enabled: true
+
+driver:
+  name: podman
+
+platforms:
+  - name: cfg-rocky10
+    image: quay.io/centos/centos:stream10
+    pre_build_image: true
+    privileged: true
+    systemd: always
+    command: /usr/sbin/init
+    capabilities:
+      - SYS_ADMIN
+  - name: cfg-ubuntu2404
+    image: docker.io/geerlingguy/docker-ubuntu2404-ansible:latest
+    pre_build_image: true
+    privileged: true
+    systemd: always
+    command: /lib/systemd/systemd
+    capabilities:
+      - SYS_ADMIN
+
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callback_result_format: yaml
+      gathering: smart
+    ssh_connection:
+      pipelining: true
+  inventory:
+    host_vars:
+      cfg-rocky10:
+        nginx_site_server_name: rocky.test
+        nginx_site_index_title: "Rocky 10 verified by Molecule"
+      cfg-ubuntu2404:
+        nginx_site_server_name: ubuntu.test
+        nginx_site_index_title: "Ubuntu 24.04 verified by Molecule"
+  env:
+    ANSIBLE_ROLES_PATH: ../../../
+
+verifier:
+  name: ansible
+
+scenario:
+  name: multi-os
+  test_sequence:
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - destroy

@@ -1,0 +1,22 @@
+---
+- name: Update apt cache (Debian family)
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install nginx (Debian family)
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+
+- name: Set Debian-family vars
+  ansible.builtin.set_fact:
+    nginx_user: www-data
+    nginx_group: www-data
+    nginx_site_conf_path: /etc/nginx/conf.d
+
+- name: Disable Debian default vhost (it grabs port 80)
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx

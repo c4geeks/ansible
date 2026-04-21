@@ -1,0 +1,16 @@
+---
+- name: Ensure EPEL repository is present (RHEL family)
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+
+- name: Install nginx (RHEL family)
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+
+- name: Set RHEL-family vars
+  ansible.builtin.set_fact:
+    nginx_user: nginx
+    nginx_group: nginx
+    nginx_site_conf_path: /etc/nginx/conf.d

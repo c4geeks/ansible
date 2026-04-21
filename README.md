@@ -34,6 +34,7 @@ cd c4geeks-ansible
 |---|---|
 | [Ansible Vault](https://computingforgeeks.com/ansible-vault-tutorial/) | `intermediate/ansible-vault-tutorial/` |
 | [Ansible Dynamic Inventory](https://computingforgeeks.com/ansible-dynamic-inventory-tutorial/) | `intermediate/ansible-dynamic-inventory-tutorial/` |
+| [Test Ansible Roles with Molecule](https://computingforgeeks.com/ansible-molecule-testing/) | `intermediate/ansible-molecule-testing/` |
 
 ### Advanced
 | Article | Folder |

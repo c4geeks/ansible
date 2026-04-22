@@ -1,0 +1,6 @@
+[hardening_targets]
+hardening-target ansible_host=192.168.1.119
+
+[hardening_targets:vars]
+ansible_user=root
+ansible_python_interpreter=/usr/bin/python3

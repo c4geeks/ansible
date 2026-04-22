@@ -1,0 +1,20 @@
+---
+- name: Tighten pwquality defaults
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: "^\\s*{{ item.key }}\\s*="
+    line: "{{ item.key }} = {{ item.value }}"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - { key: minlen,   value: "{{ hardening_pwquality_minlen }}" }
+    - { key: dcredit,  value: "{{ hardening_pwquality_dcredit }}" }
+    - { key: ucredit,  value: "{{ hardening_pwquality_ucredit }}" }
+    - { key: lcredit,  value: "{{ hardening_pwquality_lcredit }}" }
+    - { key: ocredit,  value: "{{ hardening_pwquality_ocredit }}" }
+    - { key: minclass, value: "{{ hardening_pwquality_minclass }}" }
+    - { key: maxrepeat, value: "{{ hardening_pwquality_maxrepeat }}" }
+  loop_control:
+    label: "{{ item.key }}"

@@ -1,0 +1,23 @@
+# Managed by cfg_hardening role — do not edit by hand
+Port {{ hardening_ssh_port }}
+PermitRootLogin {{ hardening_ssh_permit_root_login }}
+PasswordAuthentication {{ 'yes' if hardening_ssh_password_authentication else 'no' }}
+ChallengeResponseAuthentication no
+KbdInteractiveAuthentication no
+UsePAM yes
+PermitEmptyPasswords no
+MaxAuthTries {{ hardening_ssh_max_auth_tries }}
+LoginGraceTime {{ hardening_ssh_login_grace_time }}
+ClientAliveInterval {{ hardening_ssh_client_alive_interval }}
+ClientAliveCountMax {{ hardening_ssh_client_alive_count_max }}
+X11Forwarding no
+AllowTcpForwarding no
+AllowAgentForwarding no
+PermitUserEnvironment no
+Banner /etc/issue.net
+LogLevel VERBOSE
+KexAlgorithms {{ hardening_ssh_kex_algorithms | join(',') }}
+Ciphers {{ hardening_ssh_ciphers | join(',') }}
+MACs {{ hardening_ssh_macs | join(',') }}
+{% if hardening_ssh_allow_users %}AllowUsers {{ hardening_ssh_allow_users | join(' ') }}{% endif %}
+{% if hardening_ssh_allow_groups %}AllowGroups {{ hardening_ssh_allow_groups | join(' ') }}{% endif %}

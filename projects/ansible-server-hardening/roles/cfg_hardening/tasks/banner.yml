@@ -1,0 +1,9 @@
+---
+- name: Render /etc/issue.net banner
+  ansible.builtin.copy:
+    dest: /etc/issue.net
+    content: "{{ hardening_login_banner }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart sshd

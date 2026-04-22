@@ -51,6 +51,7 @@ cd c4geeks-ansible
 ### Projects / Comparisons
 | Article | Folder |
 |---|---|
+| [Harden Rocky Linux 10 with Ansible (CIS L1)](https://computingforgeeks.com/ansible-server-hardening/) | `projects/ansible-server-hardening/` |
 | [Ansible vs Chef vs Puppet vs Salt](https://computingforgeeks.com/ansible-vs-chef-puppet-salt/) | `projects/ansible-vs-chef-puppet-salt/` |
 
 ### Planned (not yet published)

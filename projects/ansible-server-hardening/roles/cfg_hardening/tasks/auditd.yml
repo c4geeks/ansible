@@ -1,0 +1,26 @@
+---
+- name: Drop login + sudo audit rules
+  ansible.builtin.copy:
+    dest: /etc/audit/rules.d/99-cfg-hardening.rules
+    owner: root
+    group: root
+    mode: "0640"
+    content: |
+      # Managed by cfg_hardening role
+      -w /etc/sudoers -p wa -k sudoers
+      -w /etc/sudoers.d/ -p wa -k sudoers
+      -w /var/log/sudo.log -p wa -k sudo_log
+      -w /etc/passwd -p wa -k identity
+      -w /etc/shadow -p wa -k identity
+      -w /etc/group -p wa -k identity
+      -w /etc/ssh/sshd_config -p wa -k sshd
+      -w /etc/ssh/sshd_config.d/ -p wa -k sshd
+      -w /var/log/lastlog -p wa -k logins
+      -w /var/log/btmp -p wa -k logins
+  notify: Reload auditd
+
+- name: Ensure auditd is enabled and running
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: true

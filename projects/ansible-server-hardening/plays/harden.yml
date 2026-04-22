@@ -1,0 +1,13 @@
+---
+- name: Apply baseline hardening to RHEL family hosts
+  hosts: hardening_targets
+  become: false
+  gather_facts: true
+
+  pre_tasks:
+    - name: Confirm target distribution
+      ansible.builtin.debug:
+        msg: "About to harden {{ inventory_hostname }} ({{ ansible_distribution }} {{ ansible_distribution_version }})"
+
+  roles:
+    - role: cfg_hardening

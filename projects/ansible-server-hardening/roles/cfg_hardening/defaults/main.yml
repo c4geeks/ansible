@@ -1,0 +1,90 @@
+---
+# SSH
+hardening_ssh_port: 22
+hardening_ssh_permit_root_login: "prohibit-password"
+hardening_ssh_password_authentication: false
+hardening_ssh_max_auth_tries: 3
+hardening_ssh_login_grace_time: 30
+hardening_ssh_client_alive_interval: 300
+hardening_ssh_client_alive_count_max: 2
+hardening_ssh_allow_users: []   # ["alice","bob"] — empty means do not restrict
+hardening_ssh_allow_groups: []
+hardening_ssh_kex_algorithms:
+  - curve25519-sha256@libssh.org
+  - curve25519-sha256
+  - diffie-hellman-group16-sha512
+  - diffie-hellman-group18-sha512
+hardening_ssh_ciphers:
+  - chacha20-poly1305@openssh.com
+  - aes256-gcm@openssh.com
+  - aes128-gcm@openssh.com
+  - aes256-ctr
+hardening_ssh_macs:
+  - hmac-sha2-512-etm@openssh.com
+  - hmac-sha2-256-etm@openssh.com
+  - hmac-sha2-512
+  - hmac-sha2-256
+
+# sudoers
+hardening_sudo_timestamp_timeout: 5
+hardening_sudo_log_input: false
+hardening_sudo_log_output: false
+
+# Kernel sysctl
+hardening_sysctl:
+  net.ipv4.conf.all.rp_filter: 1
+  net.ipv4.conf.default.rp_filter: 1
+  net.ipv4.tcp_syncookies: 1
+  net.ipv4.conf.all.accept_source_route: 0
+  net.ipv4.conf.all.accept_redirects: 0
+  net.ipv4.conf.all.send_redirects: 0
+  net.ipv4.icmp_echo_ignore_broadcasts: 1
+  net.ipv4.icmp_ignore_bogus_error_responses: 1
+  net.ipv6.conf.all.accept_redirects: 0
+  net.ipv6.conf.all.accept_source_route: 0
+  kernel.randomize_va_space: 2
+  kernel.kptr_restrict: 2
+  kernel.dmesg_restrict: 1
+  fs.suid_dumpable: 0
+
+# firewalld
+hardening_firewall_zone: public
+hardening_firewall_allowed_services:
+  - ssh
+hardening_firewall_allowed_ports: []   # ["80/tcp","443/tcp"]
+
+# Fail2ban
+hardening_fail2ban_bantime: 3600
+hardening_fail2ban_findtime: 600
+hardening_fail2ban_maxretry: 4
+hardening_fail2ban_ignoreip:
+  - 127.0.0.1/8
+  - ::1
+  - 192.168.0.0/16
+  - 10.0.0.0/8
+
+# Password policy (pam_pwquality)
+hardening_pwquality_minlen: 14
+hardening_pwquality_dcredit: -1
+hardening_pwquality_ucredit: -1
+hardening_pwquality_lcredit: -1
+hardening_pwquality_ocredit: -1
+hardening_pwquality_minclass: 4
+hardening_pwquality_maxrepeat: 3
+
+# Login banner
+hardening_login_banner: |
+  *********************************************************************
+  This system is for authorised users only. All activity is monitored
+  and logged. Disconnect immediately if you are not an authorised user.
+  *********************************************************************
+
+# Toggle which sub-tasks the role runs (lets consumers opt out)
+hardening_apply_ssh: true
+hardening_apply_sudo: true
+hardening_apply_sysctl: true
+hardening_apply_firewall: true
+hardening_apply_fail2ban: true
+hardening_apply_auditd: true
+hardening_apply_pam: true
+hardening_apply_banner: true

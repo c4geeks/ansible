@@ -1,0 +1,14 @@
+---
+- name: Restart sshd
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+
+- name: Restart fail2ban
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+
+- name: Reload auditd
+  ansible.builtin.command: augenrules --load
+  changed_when: false

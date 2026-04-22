@@ -1,0 +1,24 @@
+---
+- name: Ensure /etc/ssh/sshd_config.d exists
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Drop hardened sshd_config snippet
+  ansible.builtin.template:
+    src: 99-cfg-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/99-cfg-hardening.conf
+    owner: root
+    group: root
+    mode: "0600"
+    validate: 'sshd -t -f %s'
+  notify: Restart sshd
+
+- name: Ensure sshd is enabled and running
+  ansible.builtin.service:
+    name: sshd
+    state: started
+    enabled: true

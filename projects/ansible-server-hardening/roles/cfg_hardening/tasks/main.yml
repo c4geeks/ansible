@@ -1,0 +1,47 @@
+---
+- name: Assert RHEL family target
+  ansible.builtin.assert:
+    that: ansible_os_family == 'RedHat'
+    fail_msg: "cfg_hardening currently targets RHEL family hosts (Rocky 10 / Alma 10 / RHEL 10)."
+
+- name: Install hardening packages
+  ansible.builtin.dnf:
+    name:
+      - openssh-server
+      - firewalld
+      - fail2ban
+      - audit
+      - libpwquality
+    state: present
+
+- name: Apply SSH hardening
+  ansible.builtin.include_tasks: ssh.yml
+  when: hardening_apply_ssh
+
+- name: Apply sudoers hardening
+  ansible.builtin.include_tasks: sudoers.yml
+  when: hardening_apply_sudo
+
+- name: Apply kernel sysctl hardening
+  ansible.builtin.include_tasks: sysctl.yml
+  when: hardening_apply_sysctl
+
+- name: Apply firewall hardening
+  ansible.builtin.include_tasks: firewall.yml
+  when: hardening_apply_firewall
+
+- name: Apply Fail2ban setup
+  ansible.builtin.include_tasks: fail2ban.yml
+  when: hardening_apply_fail2ban
+
+- name: Apply auditd rules
+  ansible.builtin.include_tasks: auditd.yml
+  when: hardening_apply_auditd
+
+- name: Apply PAM password quality policy
+  ansible.builtin.include_tasks: pam.yml
+  when: hardening_apply_pam
+
+- name: Apply login banner
+  ansible.builtin.include_tasks: banner.yml
+  when: hardening_apply_banner

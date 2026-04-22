@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  role_name: cfg_hardening
+  namespace: c4geeks
+  author: ComputingForGeeks
+  description: Baseline hardening for Rocky Linux 10 — SSH, sudoers, sysctl, firewalld, Fail2ban, auditd, PAM password policy, login banner.
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: EL
+      versions:
+        - "9"
+        - "10"
+  galaxy_tags:
+    - security
+    - hardening
+    - cis
+    - ssh
+    - firewalld
+dependencies: []

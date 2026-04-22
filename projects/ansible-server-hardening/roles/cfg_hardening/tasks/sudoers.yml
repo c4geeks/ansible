@@ -1,0 +1,15 @@
+---
+- name: Drop sudoers timeout snippet
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/99-cfg-hardening
+    owner: root
+    group: root
+    mode: "0440"
+    content: |
+      # Managed by cfg_hardening role — do not edit by hand
+      Defaults timestamp_timeout={{ hardening_sudo_timestamp_timeout }}
+      Defaults use_pty
+      Defaults logfile="/var/log/sudo.log"
+      {% if hardening_sudo_log_input %}Defaults log_input{% endif %}
+      {% if hardening_sudo_log_output %}Defaults log_output{% endif %}
+    validate: 'visudo -cf %s'

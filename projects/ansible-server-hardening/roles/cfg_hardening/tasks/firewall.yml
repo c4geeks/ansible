@@ -1,0 +1,32 @@
+---
+- name: Ensure firewalld is enabled and running
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Set firewalld default zone
+  ansible.posix.firewalld:
+    zone: "{{ hardening_firewall_zone }}"
+    state: enabled
+    permanent: true
+    immediate: true
+  ignore_errors: true   # idempotent default-zone is finicky on rocky 10
+
+- name: Permit baseline services
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    zone: "{{ hardening_firewall_zone }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ hardening_firewall_allowed_services }}"
+
+- name: Permit additional ports
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    zone: "{{ hardening_firewall_zone }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ hardening_firewall_allowed_ports }}"

@@ -15,6 +15,6 @@ Ten articles covering installation, ad-hoc commands, inventories, your first pla
 | 7 | Ansible Handlers | `ansible-handlers-tutorial/` | planned |
 | 8 | [Ansible Jinja2 Templates](https://computingforgeeks.com/ansible-jinja2-templates-tutorial/) | `ansible-jinja2-templates-tutorial/` | published |
 | 9 | [Ansible Roles Tutorial](https://computingforgeeks.com/ansible-roles-tutorial/) | `ansible-roles-tutorial/` | published |
-| 10 | Debugging Ansible Playbooks | `ansible-debugging/` | planned |
+| 10 | [Debug Ansible Playbooks: 10 Tools and Patterns](https://computingforgeeks.com/ansible-debugging/) | `ansible-debugging/` | published |
 
 Folders are created as each article ships.

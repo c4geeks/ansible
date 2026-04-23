@@ -1,0 +1,28 @@
+---
+- name: Deploy demo with defensive assertions
+  hosts: web
+  become: false
+  gather_facts: true
+
+  vars:
+    app_name: demo
+    app_port: 8080
+    app_root: "/srv/{{ app_name }}"
+
+  tasks:
+    - name: Print every variable resolved for this run
+      ansible.builtin.debug:
+        msg:
+          - "app_name = {{ app_name }}"
+          - "app_port = {{ app_port }} (type: {{ app_port | type_debug }})"
+          - "app_root = {{ app_root }}"
+          - "app_message defined = {{ (app_message is defined) | string }}"
+
+    - name: Hard fail when required vars are missing
+      ansible.builtin.assert:
+        that:
+          - app_message is defined
+          - app_port | int > 1024
+          - app_root is string
+        fail_msg: "Required vars missing or invalid. Pass with -e."
+        success_msg: "All required vars present and well-typed"

@@ -28,6 +28,7 @@ cd c4geeks-ansible
 | [Ansible Conditionals and Loops](https://computingforgeeks.com/ansible-conditionals-loops-tutorial/) | `beginner/ansible-conditionals-loops-tutorial/` |
 | [Ansible Jinja2 Templates](https://computingforgeeks.com/ansible-jinja2-templates-tutorial/) | `beginner/ansible-jinja2-templates-tutorial/` |
 | [Ansible Roles Tutorial](https://computingforgeeks.com/ansible-roles-tutorial/) | `beginner/ansible-roles-tutorial/` |
+| [Debug Ansible Playbooks: 10 Tools and Patterns](https://computingforgeeks.com/ansible-debugging/) | `beginner/ansible-debugging/` |
 
 ### Intermediate
 | Article | Folder |

@@ -1,0 +1,73 @@
+---
+- name: Deploy a tiny demo web app
+  hosts: web
+  become: false
+  gather_facts: true
+
+  vars:
+    app_name: demo
+    app_port: 8080
+    app_root: "/srv/{{ app_name }}"
+    app_message: "Hello from {{ inventory_hostname }} on {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+  tasks:
+    - name: Ensure app dir exists
+      ansible.builtin.file:
+        path: "{{ app_root }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Render index.html
+      ansible.builtin.copy:
+        dest: "{{ app_root }}/index.html"
+        content: |
+          <!DOCTYPE html>
+          <html><body><h1>{{ app_message }}</h1></body></html>
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Render systemd unit for the demo app
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/demo.service
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Demo HTTP server
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/bin/python3 -m http.server {{ app_port }} --directory {{ app_root }}
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Reload systemd
+
+    - name: Start and enable demo service
+      ansible.builtin.systemd:
+        name: demo
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Hit the index page locally
+      ansible.builtin.uri:
+        url: "http://{{ ansible_host }}:{{ app_port }}/"
+        return_content: true
+        status_code: 200
+      register: idx
+      delegate_to: localhost
+
+    - name: Echo what came back
+      ansible.builtin.debug:
+        var: idx.content
+
+  handlers:
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true

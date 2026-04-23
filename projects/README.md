@@ -6,7 +6,7 @@ Five end-to-end projects plus comparison content.
 
 | # | Article | Folder | Status |
 |---|---|---|---|
-| 41 | Deploy LAMP/LEMP with Ansible | `ansible-lamp-lemp-stack/` | planned |
+| 41 | [Deploy WordPress on Rocky 10 with Ansible (LAMP/LEMP)](https://computingforgeeks.com/ansible-lamp-lemp-stack/) | `ansible-lamp-lemp-stack/` | published |
 | 42 | [Harden Rocky Linux 10 with Ansible (CIS L1)](https://computingforgeeks.com/ansible-server-hardening/) | `ansible-server-hardening/` | published |
 | 43 | User Management with Ansible (LDAP + Local) | `ansible-user-management/` | planned |
 | 44 | Ansible Backup Automation | `ansible-backup-automation/` | planned |

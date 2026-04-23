@@ -1,0 +1,25 @@
+---
+- name: Install LAMP packages (Rocky 10)
+  ansible.builtin.dnf:
+    name:
+      - httpd
+      - mariadb-server
+      - mariadb
+      - php
+      - php-mysqlnd
+      - php-fpm
+      - php-json
+      - php-gd
+      - php-xml
+      - php-mbstring
+      - php-cli
+      - python3-PyMySQL
+      - tar
+      - curl
+    state: present
+
+- name: Set web user/group facts
+  ansible.builtin.set_fact:
+    web_user: apache
+    web_group: apache
+    web_service: httpd

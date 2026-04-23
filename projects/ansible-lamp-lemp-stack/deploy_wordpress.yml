@@ -1,0 +1,13 @@
+---
+- name: Deploy WordPress on either LAMP or LEMP
+  hosts: web
+  become: false
+  gather_facts: true
+
+  pre_tasks:
+    - name: Confirm target distribution
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} is {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+  roles:
+    - role: cfg_webstack

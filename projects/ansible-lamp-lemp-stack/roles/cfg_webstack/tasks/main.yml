@@ -1,0 +1,24 @@
+---
+- name: Pick variant by OS family (lamp = RHEL, lemp = Debian)
+  ansible.builtin.set_fact:
+    webstack_variant: "{{ 'lamp' if ansible_os_family == 'RedHat' else 'lemp' }}"
+
+- name: Install OS-family packages
+  ansible.builtin.include_tasks: "install_{{ webstack_variant }}.yml"
+
+- name: Ensure site root exists (needed by web + wordpress steps)
+  ansible.builtin.file:
+    path: "{{ site_root }}"
+    state: directory
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: "0755"
+
+- name: Configure database
+  ansible.builtin.include_tasks: db.yml
+
+- name: Configure web server
+  ansible.builtin.include_tasks: "web_{{ webstack_variant }}.yml"
+
+- name: Install WordPress
+  ansible.builtin.include_tasks: wordpress.yml

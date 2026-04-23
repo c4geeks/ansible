@@ -1,0 +1,30 @@
+---
+- name: Refresh apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install LEMP packages (Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - mariadb-server
+      - mariadb-client
+      - php-fpm
+      - php-mysql
+      - php-gd
+      - php-xml
+      - php-mbstring
+      - php-curl
+      - php-zip
+      - php-cli
+      - python3-pymysql
+      - curl
+      - tar
+    state: present
+
+- name: Set web user/group facts
+  ansible.builtin.set_fact:
+    web_user: www-data
+    web_group: www-data
+    web_service: nginx

@@ -1,0 +1,44 @@
+---
+- name: Detect installed php-fpm version
+  ansible.builtin.shell: |
+    set -o pipefail
+    apt list --installed 2>/dev/null | awk -F/ '/^php[0-9.]+-fpm\// {print $1; exit}' | sed 's/^php//; s/-fpm//'
+  args:
+    executable: /bin/bash
+  register: php_version_raw
+  changed_when: false
+
+- name: Set php_version fact
+  ansible.builtin.set_fact:
+    php_version: "{{ php_version_raw.stdout | trim }}"
+
+- name: Render Nginx vhost
+  ansible.builtin.template:
+    src: site_nginx.conf.j2
+    dest: /etc/nginx/sites-available/{{ site_domain }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Enable Nginx vhost
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/{{ site_domain }}.conf
+    dest: /etc/nginx/sites-enabled/{{ site_domain }}.conf
+    state: link
+  notify: Reload nginx
+
+- name: Disable Debian default vhost
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+
+- name: Ensure php-fpm and nginx are started
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - "php{{ php_version }}-fpm"
+    - nginx

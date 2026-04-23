@@ -1,0 +1,28 @@
+---
+- name: Render Apache vhost
+  ansible.builtin.template:
+    src: site_apache.conf.j2
+    dest: /etc/httpd/conf.d/{{ site_domain }}.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload httpd
+
+- name: Permit Apache to read/write the site root (SELinux)
+  ansible.builtin.command: chcon -R -t httpd_sys_rw_content_t {{ site_root }}
+  args:
+    creates: "{{ site_root }}/.cfg_chcon_marker"
+
+- name: Drop SELinux marker so the chcon is idempotent
+  ansible.builtin.copy:
+    dest: "{{ site_root }}/.cfg_chcon_marker"
+    content: "managed by cfg_webstack\n"
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: "0644"
+
+- name: Ensure httpd is enabled and started
+  ansible.builtin.service:
+    name: httpd
+    state: started
+    enabled: true

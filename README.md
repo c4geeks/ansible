@@ -54,6 +54,7 @@ cd c4geeks-ansible
 | Article | Folder |
 |---|---|
 | [Harden Rocky Linux 10 with Ansible (CIS L1)](https://computingforgeeks.com/ansible-server-hardening/) | `projects/ansible-server-hardening/` |
+| [Deploy WordPress on Rocky 10 with Ansible (LAMP/LEMP)](https://computingforgeeks.com/ansible-lamp-lemp-stack/) | `projects/ansible-lamp-lemp-stack/` |
 | [Ansible vs Chef vs Puppet vs Salt](https://computingforgeeks.com/ansible-vs-chef-puppet-salt/) | `projects/ansible-vs-chef-puppet-salt/` |
 
 ### Planned (not yet published)

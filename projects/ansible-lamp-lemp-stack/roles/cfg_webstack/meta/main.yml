@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: cfg_webstack
+  namespace: c4geeks
+  author: ComputingForGeeks
+  description: One Ansible role that deploys WordPress on LAMP (RHEL family) or LEMP (Debian family).
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: EL
+      versions: ["10"]
+    - name: Ubuntu
+      versions: ["jammy", "noble"]
+  galaxy_tags: [web, wordpress, mysql, mariadb, php, lamp, lemp]
+dependencies: []

@@ -1,0 +1,15 @@
+---
+- name: Reload httpd
+  ansible.builtin.service:
+    name: httpd
+    state: reloaded
+
+- name: Reload nginx
+  ansible.builtin.service:
+    name: nginx
+    state: reloaded
+
+- name: Reload web
+  ansible.builtin.service:
+    name: "{{ web_service }}"
+    state: reloaded

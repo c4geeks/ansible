@@ -1,0 +1,58 @@
+---
+- name: Download WordPress tarball (idempotent on size)
+  ansible.builtin.get_url:
+    url: "https://wordpress.org/{{ 'latest' if wp_version == 'latest' else 'wordpress-' ~ wp_version }}.tar.gz"
+    dest: /tmp/wordpress.tar.gz
+    mode: "0644"
+    force: false
+
+- name: Check whether WordPress is already extracted
+  ansible.builtin.stat:
+    path: "{{ site_root }}/wp-config.php"
+  register: wp_present
+
+- name: Extract WordPress when not yet installed
+  ansible.builtin.unarchive:
+    src: /tmp/wordpress.tar.gz
+    dest: "{{ site_root }}"
+    remote_src: true
+    extra_opts: ["--strip-components=1"]
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+  when: not wp_present.stat.exists
+
+- name: Render wp-config.php
+  ansible.builtin.template:
+    src: wp-config.php.j2
+    dest: "{{ site_root }}/wp-config.php"
+    owner: "{{ web_user }}"
+    group: "{{ web_group }}"
+    mode: "0640"
+  notify: Reload web
+
+- name: Probe install status (Set-Cookie absent => already installed)
+  ansible.builtin.uri:
+    url: "http://{{ ansible_host }}:{{ site_listen_port }}/wp-admin/install.php"
+    return_content: false
+    status_code: [200, 302]
+  delegate_to: localhost
+  register: wp_install_probe
+
+- name: Run the WordPress 5-minute install via REST (only once)
+  ansible.builtin.uri:
+    url: "http://{{ ansible_host }}:{{ site_listen_port }}/wp-admin/install.php?step=2"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      weblog_title: "{{ wp_site_title }}"
+      user_name: "{{ wp_admin_user }}"
+      admin_password: "{{ wp_admin_password }}"
+      admin_password2: "{{ wp_admin_password }}"
+      pw_weak: "1"
+      admin_email: "{{ wp_admin_email }}"
+      blog_public: "0"
+      Submit: "Install WordPress"
+    status_code: [200, 302]
+    follow_redirects: none
+  delegate_to: localhost
+  when: not wp_present.stat.exists

@@ -1,0 +1,42 @@
+---
+- name: Ensure mariadb is enabled and started
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: true
+
+- name: Set root password (idempotent via socket auth)
+  community.mysql.mysql_user:
+    name: root
+    host_all: true
+    password: "{{ db_root_password }}"
+    login_unix_socket: "{{ '/var/lib/mysql/mysql.sock' if ansible_os_family == 'RedHat' else '/run/mysqld/mysqld.sock' }}"
+  no_log: true
+
+- name: Drop default ~/.my.cnf so subsequent tasks use our creds
+  ansible.builtin.copy:
+    dest: /root/.my.cnf
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      [client]
+      user=root
+      password={{ db_root_password }}
+
+- name: Create wordpress database
+  community.mysql.mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_user: root
+    login_password: "{{ db_root_password }}"
+
+- name: Create wordpress user
+  community.mysql.mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    host: localhost
+    state: present
+    login_user: root
+    login_password: "{{ db_root_password }}"

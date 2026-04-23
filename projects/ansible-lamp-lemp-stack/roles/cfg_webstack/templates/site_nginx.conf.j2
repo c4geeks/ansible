@@ -1,0 +1,18 @@
+server {
+    listen {{ site_listen_port }} default_server;
+    server_name {{ site_domain }};
+    root {{ site_root }};
+    index index.php index.html;
+
+    access_log /var/log/nginx/{{ site_domain }}_access.log;
+    error_log  /var/log/nginx/{{ site_domain }}_error.log;
+
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php{{ php_version }}-fpm.sock;
+    }
+}

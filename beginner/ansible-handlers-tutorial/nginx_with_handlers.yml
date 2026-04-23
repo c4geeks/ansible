@@ -1,0 +1,89 @@
+---
+- name: nginx with three handlers (notify, listen, flush)
+  hosts: web
+  become: false
+  gather_facts: true
+  force_handlers: false   # default; we'll flip this in playbook B
+
+  vars:
+    nginx_root: /var/www/handlers-demo
+    nginx_message: "Handlers article: notify works"
+
+  tasks:
+    - name: Install nginx
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+
+    - name: Render docroot
+      ansible.builtin.file:
+        path: "{{ nginx_root }}"
+        state: directory
+        owner: nginx
+        group: nginx
+        mode: "0755"
+
+    - name: Render index page
+      ansible.builtin.copy:
+        dest: "{{ nginx_root }}/index.html"
+        owner: nginx
+        group: nginx
+        mode: "0644"
+        content: |
+          <html><body><h1>{{ nginx_message }}</h1></body></html>
+      notify:
+        - Reload nginx
+        - Log site change
+
+    - name: Render vhost
+      ansible.builtin.copy:
+        dest: /etc/nginx/conf.d/handlers-demo.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          server {
+              listen 80 default_server;
+              root {{ nginx_root }};
+              index index.html;
+          }
+      notify:
+        - Validate nginx config
+        - Reload nginx
+
+    - name: Force handlers to run before the verification step
+      ansible.builtin.meta: flush_handlers
+
+    - name: Verify nginx serves the new content
+      ansible.builtin.uri:
+        url: "http://{{ ansible_host }}/"
+        return_content: true
+        status_code: 200
+      delegate_to: localhost
+      register: idx
+
+    - name: Echo the served HTML
+      ansible.builtin.debug:
+        var: idx.content
+
+  handlers:
+    - name: Validate nginx config
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+    - name: Log site change
+      ansible.builtin.debug:
+        msg: "[{{ ansible_date_time.iso8601 }}] handlers-demo site was rerendered"
+
+    # Wider listen: anything that "notifies any of these topics" fires this too
+    - name: Send a webhook (placeholder)
+      ansible.builtin.debug:
+        msg: "Pretend webhook to PagerDuty: site changed on {{ inventory_hostname }}"
+      listen:
+        - Reload nginx
+        - Log site change

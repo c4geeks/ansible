@@ -29,6 +29,7 @@ cd c4geeks-ansible
 | [Ansible Jinja2 Templates](https://computingforgeeks.com/ansible-jinja2-templates-tutorial/) | `beginner/ansible-jinja2-templates-tutorial/` |
 | [Ansible Roles Tutorial](https://computingforgeeks.com/ansible-roles-tutorial/) | `beginner/ansible-roles-tutorial/` |
 | [Debug Ansible Playbooks: 10 Tools and Patterns](https://computingforgeeks.com/ansible-debugging/) | `beginner/ansible-debugging/` |
+| [Use Ansible Handlers: notify, listen, force_handlers](https://computingforgeeks.com/ansible-handlers-tutorial/) | `beginner/ansible-handlers-tutorial/` |
 
 ### Intermediate
 | Article | Folder |

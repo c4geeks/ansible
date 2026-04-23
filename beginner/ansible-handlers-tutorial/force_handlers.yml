@@ -1,0 +1,30 @@
+---
+- name: A failing task should still flush already-notified handlers
+  hosts: web
+  become: false
+  gather_facts: false
+  force_handlers: true
+
+  vars:
+    nginx_root: /var/www/handlers-demo
+
+  tasks:
+    - name: Touch the index file (notifies the reload handler)
+      ansible.builtin.copy:
+        dest: "{{ nginx_root }}/index.html"
+        owner: nginx
+        group: nginx
+        mode: "0644"
+        content: |
+          <html><body><h1>Edit triggered by force_handlers run</h1></body></html>
+      notify: Reload nginx
+
+    - name: Deliberately fail the next task
+      ansible.builtin.fail:
+        msg: "Pretend something broke after the config edit"
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded

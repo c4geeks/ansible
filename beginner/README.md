@@ -12,7 +12,7 @@ Ten articles covering installation, ad-hoc commands, inventories, your first pla
 | 4 | [Your First Ansible Playbook](https://computingforgeeks.com/ansible-playbook-tutorial/) | `ansible-playbook-tutorial/` | published |
 | 5 | [Ansible Variables](https://computingforgeeks.com/ansible-variables-tutorial/) | `ansible-variables-tutorial/` | published |
 | 6 | [Ansible Conditionals and Loops](https://computingforgeeks.com/ansible-conditionals-loops-tutorial/) | `ansible-conditionals-loops-tutorial/` | published |
-| 7 | Ansible Handlers | `ansible-handlers-tutorial/` | planned |
+| 7 | [Use Ansible Handlers: notify, listen, force_handlers](https://computingforgeeks.com/ansible-handlers-tutorial/) | `ansible-handlers-tutorial/` | published |
 | 8 | [Ansible Jinja2 Templates](https://computingforgeeks.com/ansible-jinja2-templates-tutorial/) | `ansible-jinja2-templates-tutorial/` | published |
 | 9 | [Ansible Roles Tutorial](https://computingforgeeks.com/ansible-roles-tutorial/) | `ansible-roles-tutorial/` | published |
 | 10 | [Debug Ansible Playbooks: 10 Tools and Patterns](https://computingforgeeks.com/ansible-debugging/) | `ansible-debugging/` | published |

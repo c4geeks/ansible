@@ -1,0 +1,19 @@
+---
+- name: Handler name mismatch: handler never fires
+  hosts: web
+  become: false
+  gather_facts: false
+
+  tasks:
+    - name: Edit config but mistype the handler name
+      ansible.builtin.copy:
+        dest: /tmp/handlers-demo-config.txt
+        content: "edit at {{ '%s' | strftime }}"
+        mode: "0644"
+      notify: reload-nginx     # mistyped: actual handler is "Reload nginx"
+
+  handlers:
+    - name: Reload nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded

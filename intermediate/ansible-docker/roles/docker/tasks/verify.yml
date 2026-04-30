@@ -1,0 +1,27 @@
+---
+- name: Capture docker version
+  ansible.builtin.command: docker version --format '{% raw %}{{.Server.Version}}{% endraw %}'
+  register: docker_version_out
+  changed_when: false
+
+- name: Capture docker compose version
+  ansible.builtin.command: docker compose version --short
+  register: docker_compose_version_out
+  changed_when: false
+
+- name: Show versions
+  ansible.builtin.debug:
+    msg:
+      - "Docker Engine: {{ docker_version_out.stdout }}"
+      - "Docker Compose plugin: {{ docker_compose_version_out.stdout }}"
+
+- name: Run hello-world smoke test
+  community.docker.docker_container:
+    name: hello-world-smoke
+    image: hello-world
+    state: started
+    detach: false
+    cleanup: true
+    auto_remove: true
+  when: docker_run_hello_world | bool
+  failed_when: false

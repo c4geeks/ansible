@@ -1,0 +1,6 @@
+---
+# Encrypt this file with: ansible-vault encrypt vault/registry.yml
+# Then reference vars in playbooks via group_vars/all.yml.
+
+vault_registry_user: "your-github-username"
+vault_registry_token: "ghp_replace_with_a_real_pat"

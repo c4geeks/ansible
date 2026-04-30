@@ -1,0 +1,10 @@
+---
+- name: Confirm reachability of every managed host
+  hosts: docker_hosts
+  gather_facts: false
+  tasks:
+    - name: Ping
+      ansible.builtin.ping:
+    - name: Show OS family
+      ansible.builtin.setup:
+        filter: ansible_os_family

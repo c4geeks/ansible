@@ -1,0 +1,26 @@
+---
+# Defaults for the docker role. Override in group_vars/host_vars.
+
+# Users to add to the docker group (sudoless docker access).
+docker_users:
+  - "{{ ansible_user }}"
+
+# Logging driver knobs (written to /etc/docker/daemon.json).
+docker_log_driver: json-file
+docker_log_max_size: "10m"
+docker_log_max_file: "3"
+
+# Storage driver. overlay2 is the modern default on both RHEL and Debian families.
+docker_storage_driver: overlay2
+
+# Allow the role to write a fresh daemon.json. Set to false if you manage it elsewhere.
+docker_manage_daemon_json: true
+
+# Whether to run hello-world as a smoke test after install.
+docker_run_hello_world: true
+
+# Compose plugin presence is enforced (we always install docker-compose-plugin).
+docker_install_compose_plugin: true
+
+# buildx is required for multi-arch and modern image builds.
+docker_install_buildx_plugin: true

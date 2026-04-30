@@ -1,0 +1,35 @@
+---
+- name: Deploy the observability stack via docker compose
+  hosts: docker_hosts
+  become: true
+  vars:
+    stack_name: observability
+    stack_dir: "{{ stacks_root }}/{{ stack_name }}"
+  tasks:
+    - name: Ensure stack directory exists
+      ansible.builtin.file:
+        path: "{{ stack_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Render compose.yml
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/observability/compose.yml.j2"
+        dest: "{{ stack_dir }}/compose.yml"
+        mode: "0644"
+
+    - name: Bring up the stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ stack_dir }}"
+        state: present
+        pull: missing
+      register: compose_result
+
+    - name: Show running services
+      ansible.builtin.command: docker compose -f {{ stack_dir }}/compose.yml ps
+      register: compose_ps
+      changed_when: false
+
+    - name: Print compose ps
+      ansible.builtin.debug:
+        var: compose_ps.stdout_lines

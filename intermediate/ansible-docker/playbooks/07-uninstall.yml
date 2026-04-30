@@ -1,0 +1,61 @@
+---
+- name: Tear down the lab (containers, stacks, optionally Docker itself)
+  hosts: docker_hosts
+  become: true
+  vars:
+    remove_docker_engine: false
+  tasks:
+    - name: Stop and remove the observability compose stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ stacks_root }}/observability"
+        state: absent
+      failed_when: false
+
+    - name: Remove standalone containers
+      community.docker.docker_container:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - uptime-kuma
+        - hello-app
+      failed_when: false
+
+    - name: Remove named volumes
+      community.docker.docker_volume:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - uptime-kuma-data
+      failed_when: false
+
+    - name: Optionally uninstall Docker Engine
+      when: remove_docker_engine | bool
+      block:
+        - name: Stop and disable docker
+          ansible.builtin.systemd:
+            name: docker
+            state: stopped
+            enabled: false
+          failed_when: false
+
+        - name: Remove Docker packages (RHEL family)
+          ansible.builtin.dnf:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-buildx-plugin
+              - docker-compose-plugin
+            state: absent
+          when: ansible_os_family == "RedHat"
+
+        - name: Remove Docker packages (Debian family)
+          ansible.builtin.apt:
+            name:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-buildx-plugin
+              - docker-compose-plugin
+            state: absent
+          when: ansible_os_family == "Debian"

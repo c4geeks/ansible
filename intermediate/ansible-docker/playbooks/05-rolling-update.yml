@@ -1,0 +1,65 @@
+---
+- name: Rolling update across docker hosts (one at a time, healthcheck-gated)
+  hosts: docker_hosts
+  become: true
+  serial: 1
+  max_fail_percentage: 0
+  vars:
+    container_name: hello-app
+    new_image: "python:3.13-alpine"
+    app_port: 8088
+    healthcheck_url: "http://localhost:{{ app_port }}/"
+  tasks:
+    - name: Pull new image
+      community.docker.docker_image:
+        name: "{{ new_image }}"
+        source: pull
+        force_source: true
+
+    - name: Ensure app directory exists
+      ansible.builtin.file:
+        path: /opt/hello
+        state: directory
+        mode: "0755"
+
+    - name: Stage app entrypoint
+      ansible.builtin.copy:
+        dest: /opt/hello/app.py
+        content: |
+          import http.server, socketserver, socket, os
+          PORT={{ app_port }}; HN=socket.gethostname()
+          class H(http.server.BaseHTTPRequestHandler):
+              def do_GET(self):
+                  b=f"hi from {HN} (rolling)\n".encode()
+                  self.send_response(200); self.send_header('Content-Length', len(b))
+                  self.end_headers(); self.wfile.write(b)
+              def log_message(self,*a): return
+          with socketserver.TCPServer(("",PORT), H) as s:
+              print(f"listening on :{PORT}", flush=True); s.serve_forever()
+        mode: "0644"
+
+    - name: Recreate the container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ new_image }}"
+        state: started
+        recreate: true
+        published_ports:
+          - "{{ app_port }}:{{ app_port }}"
+        volumes:
+          - "/opt/hello/app.py:/app.py:ro"
+        command: ["python", "/app.py"]
+        restart_policy: unless-stopped
+
+    - name: Wait for healthcheck
+      ansible.builtin.uri:
+        url: "{{ healthcheck_url }}"
+        status_code: 200
+      register: hc
+      retries: 12
+      delay: 5
+      until: hc.status == 200
+
+    - name: Healthcheck pass
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} healthy after rollout"

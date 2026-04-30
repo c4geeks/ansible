@@ -1,0 +1,5 @@
+*.local
+.ansible_facts/
+vault/registry.yml
+*.retry
+__pycache__/

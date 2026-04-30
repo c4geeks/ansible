@@ -1,0 +1,43 @@
+---
+- name: Deploy a single Uptime Kuma container
+  hosts: docker-rocky-01
+  become: true
+  vars:
+    container_name: uptime-kuma
+    container_image: louislam/uptime-kuma:1
+    host_port: "{{ uptime_kuma_port }}"
+  tasks:
+    - name: Create named volume for Uptime Kuma data
+      community.docker.docker_volume:
+        name: uptime-kuma-data
+        state: present
+
+    - name: Run Uptime Kuma container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ container_image }}"
+        state: started
+        pull: "{{ container_pull_policy }}"
+        restart_policy: "{{ container_restart_policy }}"
+        published_ports:
+          - "{{ host_port }}:3001"
+        volumes:
+          - "uptime-kuma-data:/app/data"
+        labels:
+          managed_by: ansible
+          stack: monitoring
+        healthcheck:
+          test: ["CMD", "extra/healthcheck"]
+          interval: 60s
+          timeout: 30s
+          retries: 5
+          start_period: 30s
+
+    - name: Show running containers
+      ansible.builtin.command: docker ps --format "table {% raw %}{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}{% endraw %}"
+      register: ps_out
+      changed_when: false
+
+    - name: Print docker ps
+      ansible.builtin.debug:
+        var: ps_out.stdout_lines

@@ -1,0 +1,12 @@
+---
+# Vars applied to every host in the docker_hosts group.
+# Override per-host in host_vars/<name>.yml if needed.
+
+docker_users:
+  - "{{ ansible_user }}"
+
+# Pull policy used by container playbooks.
+container_pull_policy: missing
+
+# Default restart policy for containers.
+container_restart_policy: unless-stopped

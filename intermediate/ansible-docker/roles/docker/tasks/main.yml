@@ -1,0 +1,9 @@
+---
+- name: Dispatch to OS-family install path
+  ansible.builtin.include_tasks: "install_{{ ansible_os_family | lower }}.yml"
+
+- name: Run post-install steps (group, daemon.json, service)
+  ansible.builtin.include_tasks: post_install.yml
+
+- name: Verify the install
+  ansible.builtin.include_tasks: verify.yml

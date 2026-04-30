@@ -1,0 +1,52 @@
+---
+- name: Build a sample image and push to a private registry
+  hosts: docker-rocky-01
+  become: true
+  vars:
+    build_context: /tmp/sample-app
+    image_name: "{{ sample_app_image }}"
+    image_tag: "{{ sample_app_tag }}"
+  tasks:
+    - name: Stage build context
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../roles/docker/files/sample-app/"
+        dest: "{{ build_context }}/"
+        mode: "0644"
+
+    - name: Build image with buildx (single arch)
+      community.docker.docker_image:
+        name: "{{ image_name }}"
+        tag: "{{ image_tag }}"
+        source: build
+        build:
+          path: "{{ build_context }}"
+          pull: true
+        force_source: false
+
+    - name: Tag image as :latest
+      community.docker.docker_image:
+        name: "{{ image_name }}:{{ image_tag }}"
+        repository: "{{ image_name }}:latest"
+        source: local
+
+    - name: Authenticate to GHCR
+      community.docker.docker_login:
+        registry_url: "{{ registry_host }}"
+        username: "{{ registry_user }}"
+        password: "{{ registry_token }}"
+        reauthorize: true
+      when: registry_token | length > 0
+      no_log: true
+
+    - name: Push tagged image
+      community.docker.docker_image:
+        name: "{{ image_name }}:{{ image_tag }}"
+        push: true
+        source: local
+      when: registry_token | length > 0
+      register: push_result
+
+    - name: Show push result
+      ansible.builtin.debug:
+        msg: "Pushed {{ image_name }}:{{ image_tag }} -> {{ registry_host }}"
+      when: registry_token | length > 0

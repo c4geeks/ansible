@@ -1,0 +1,6 @@
+---
+- name: Install Docker on Rocky and Ubuntu hosts
+  hosts: docker_hosts
+  become: true
+  roles:
+    - docker

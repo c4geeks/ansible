@@ -1,0 +1,18 @@
+---
+# Global vars shared across all hosts in this lab.
+
+# Stack root on every managed host.
+stacks_root: /opt/stacks
+
+# GHCR registry config. Override with vault-encrypted values.
+registry_host: ghcr.io
+registry_user: "{{ vault_registry_user | default('') }}"
+registry_token: "{{ vault_registry_token | default('') }}"
+
+# Sample app image coords (built locally in playbook 03).
+sample_app_image: "ghcr.io/c4geeks/ansible-docker-sample"
+sample_app_tag: "{{ ansible_date_time.iso8601_basic_short | default('latest') }}"
+
+# Observability stack ports.
+uptime_kuma_port: 3001
+cadvisor_port: 8080

@@ -1,0 +1,36 @@
+---
+- name: Back up named docker volumes to /var/backups/docker
+  hosts: docker_hosts
+  become: true
+  vars:
+    backup_root: /var/backups/docker
+    volumes_to_backup:
+      - uptime-kuma-data
+    backup_stamp: "{{ ansible_date_time.iso8601_basic_short }}"
+  tasks:
+    - name: Ensure backup root exists
+      ansible.builtin.file:
+        path: "{{ backup_root }}"
+        state: directory
+        mode: "0750"
+
+    - name: Snapshot volume to tarball
+      ansible.builtin.command: >-
+        docker run --rm
+        -v {{ item }}:/data:ro
+        -v {{ backup_root }}:/backup
+        alpine
+        tar czf /backup/{{ item }}-{{ backup_stamp }}.tar.gz -C /data .
+      args:
+        creates: "{{ backup_root }}/{{ item }}-{{ backup_stamp }}.tar.gz"
+      loop: "{{ volumes_to_backup }}"
+
+    - name: List backups
+      ansible.builtin.find:
+        paths: "{{ backup_root }}"
+        patterns: "*.tar.gz"
+      register: backups
+
+    - name: Show backups
+      ansible.builtin.debug:
+        msg: "{{ backups.files | map(attribute='path') | list }}"

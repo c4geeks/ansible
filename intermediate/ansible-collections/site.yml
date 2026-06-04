@@ -1,0 +1,53 @@
+---
+# Demonstrates calling installed collections by their fully qualified name
+# (namespace.collection.module). The same job (open port 80) uses the right
+# module per OS family, and a second play mints a self-signed cert.
+#
+# Install the collections first:
+#   ansible-galaxy collection install -r requirements.yml
+# Then run:
+#   ansible-playbook site.yml
+
+- name: Open a firewall port using the right collection per OS
+  hosts: web
+  become: true
+  tasks:
+    - name: Allow HTTP on RHEL-family hosts (ansible.posix)
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        immediate: true
+        state: enabled
+      when: ansible_os_family == "RedHat"
+
+    - name: Allow HTTP on Debian-family hosts (community.general)
+      community.general.ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+      when: ansible_os_family == "Debian"
+
+- name: Generate a self-signed TLS cert with community.crypto
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    cert_dir: "{{ playbook_dir }}/pki"
+  tasks:
+    - name: Ensure the PKI directory exists
+      ansible.builtin.file:
+        path: "{{ cert_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Create a private key
+      community.crypto.openssl_privatekey:
+        path: "{{ cert_dir }}/web.key"
+        size: 2048
+
+    - name: Create a self-signed certificate
+      community.crypto.x509_certificate:
+        path: "{{ cert_dir }}/web.crt"
+        privatekey_path: "{{ cert_dir }}/web.key"
+        provider: selfsigned
+        selfsigned_not_after: "+365d"

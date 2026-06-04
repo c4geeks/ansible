@@ -1,0 +1,14 @@
+---
+# Pin collections to a known, tested set. The version ranges below are
+# chosen to work with the ansible-core that ships in Rocky Linux 10 and
+# Ubuntu 24.04 (ansible-core 2.16). Bump them after you upgrade ansible-core.
+collections:
+  - name: ansible.posix
+    version: ">=2.0.0,<3.0.0"
+  - name: community.general
+    version: ">=10.0.0,<11.0.0"     # 10.x line supports ansible-core 2.16
+  - name: community.crypto
+    version: ">=2.20.0,<3.0.0"      # 2.x line supports ansible-core 2.16
+
+roles:
+  - name: geerlingguy.ntp

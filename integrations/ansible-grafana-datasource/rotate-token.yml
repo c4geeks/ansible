@@ -1,0 +1,25 @@
+---
+# Pushing a rotated secret. Grafana stores tokens write-only, so the module
+# cannot tell a secret changed and leaves it alone by default. enforce_secure_data
+# forces it through. The task then always reports changed (it re-sends the secret
+# every run), so turn it on only while rotating, then take it back off.
+- name: Rotate the InfluxDB token
+  hosts: control
+  gather_facts: false
+  tasks:
+    - name: Push the InfluxDB token even when other fields are unchanged
+      community.grafana.grafana_datasource:
+        name: InfluxDB
+        grafana_url: "{{ grafana_url }}"
+        grafana_api_key: "{{ grafana_token }}"
+        ds_type: influxdb
+        ds_url: "http://192.168.10.10:8086"
+        additional_json_data:
+          version: Flux
+          organization: computingforgeeks
+          defaultBucket: metrics
+          httpMode: POST
+        additional_secure_json_data:
+          token: "{{ vault_influx_token }}"
+        enforce_secure_data: true
+        state: present

@@ -1,0 +1,4 @@
+---
+# Fallback if the playbook is run without group_vars. Override these for real.
+grafana_url: "http://localhost:3000"
+grafana_datasources: []

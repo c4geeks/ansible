@@ -1,0 +1,27 @@
+---
+# Where Grafana lives and how to authenticate against its HTTP API.
+# grafana_token is a Grafana SERVICE ACCOUNT token, not the admin password.
+# Create it once (see the guide), then keep it out of plain text with
+# ansible-vault. vault_grafana_token / vault_influx_token live in an encrypted
+# vars file you load at runtime.
+grafana_url: "http://192.168.10.10:3000"
+grafana_token: "{{ vault_grafana_token }}"
+
+# Each entry becomes one data source. The list is the only thing you edit when
+# you add a backend; the role loops over it.
+grafana_datasources:
+  - name: Prometheus
+    ds_type: prometheus
+    ds_url: "http://192.168.10.10:9090"
+    is_default: true
+
+  - name: InfluxDB
+    ds_type: influxdb
+    ds_url: "http://192.168.10.10:8086"
+    additional_json_data:
+      version: Flux
+      organization: computingforgeeks
+      defaultBucket: metrics
+      httpMode: POST
+    additional_secure_json_data:
+      token: "{{ vault_influx_token }}"

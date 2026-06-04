@@ -1,0 +1,16 @@
+---
+# Day-2: remove a data source. state: absent deletes it by name.
+# Note: a data source created by file provisioning is read-only and the API
+# refuses to delete it. This only works on API-created (module) data sources.
+- name: Remove a Grafana data source
+  hosts: control
+  gather_facts: false
+  tasks:
+    - name: Delete the InfluxDB data source
+      community.grafana.grafana_datasource:
+        name: InfluxDB
+        grafana_url: "{{ grafana_url }}"
+        grafana_api_key: "{{ grafana_token }}"
+        ds_type: influxdb
+        ds_url: "http://192.168.10.10:8086"
+        state: absent

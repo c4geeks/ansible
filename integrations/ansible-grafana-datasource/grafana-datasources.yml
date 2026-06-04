@@ -1,0 +1,6 @@
+---
+- name: Provision Grafana data sources
+  hosts: control
+  gather_facts: false
+  roles:
+    - grafana_datasources

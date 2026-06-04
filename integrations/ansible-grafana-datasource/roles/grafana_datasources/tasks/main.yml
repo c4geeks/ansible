@@ -1,0 +1,19 @@
+---
+# One task, one loop. community.grafana.grafana_datasource is idempotent:
+# present creates the data source if it is missing and updates it in place if
+# any field drifted, so a second run reports changed=0.
+- name: Add or update Grafana data sources
+  community.grafana.grafana_datasource:
+    name: "{{ item.name }}"
+    grafana_url: "{{ grafana_url }}"
+    grafana_api_key: "{{ grafana_token }}"
+    ds_type: "{{ item.ds_type }}"
+    ds_url: "{{ item.ds_url }}"
+    access: "{{ item.access | default('proxy') }}"
+    is_default: "{{ item.is_default | default(false) }}"
+    additional_json_data: "{{ item.additional_json_data | default(omit) }}"
+    additional_secure_json_data: "{{ item.additional_secure_json_data | default(omit) }}"
+    state: present
+  loop: "{{ grafana_datasources }}"
+  loop_control:
+    label: "{{ item.name }}"

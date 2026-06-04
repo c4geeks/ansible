@@ -1,0 +1,10 @@
+---
+- name: Check whether this node already joined the cluster
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: kubelet_conf
+
+- name: Join the node to the cluster
+  ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]]['kubeadm_join_command'] }}"
+  when: not kubelet_conf.stat.exists
+  changed_when: true

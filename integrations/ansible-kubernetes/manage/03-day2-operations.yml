@@ -1,0 +1,67 @@
+---
+# Day-2 operations: drain a node for maintenance, bring it back, roll a deployment.
+- name: Node maintenance and a rolling restart with Ansible
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    kubeconfig: "{{ lookup('env', 'HOME') }}/ansible-k8s/admin.conf"
+    target_node: k8s-w2
+    app_namespace: demo
+  tasks:
+    - name: Cordon and drain the node
+      kubernetes.core.k8s_drain:
+        kubeconfig: "{{ kubeconfig }}"
+        name: "{{ target_node }}"
+        state: drain
+        delete_options:
+          ignore_daemonsets: true
+          delete_emptydir_data: true
+          terminate_grace_period: 30
+          wait_timeout: 120
+
+    - name: Confirm the node is unschedulable
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        kind: Node
+        name: "{{ target_node }}"
+      register: drained_node
+
+    - name: Node scheduling state
+      ansible.builtin.debug:
+        msg: "{{ target_node }} unschedulable = {{ drained_node.resources[0].spec.unschedulable | default(false) }}"
+
+    # Real maintenance (kernel patch, reboot) would happen here.
+
+    - name: Bring the node back into the scheduler
+      kubernetes.core.k8s_drain:
+        kubeconfig: "{{ kubeconfig }}"
+        name: "{{ target_node }}"
+        state: uncordon
+
+    - name: Trigger a rolling restart of the web deployment
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: patched
+        kind: Deployment
+        name: web
+        namespace: "{{ app_namespace }}"
+        definition:
+          spec:
+            template:
+              metadata:
+                annotations:
+                  ansible.computingforgeeks.com/restartedAt: "{{ now(utc=true).isoformat() }}"
+
+    - name: Wait for the rollout to finish
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: apps/v1
+        kind: Deployment
+        name: web
+        namespace: "{{ app_namespace }}"
+        wait: true
+        wait_condition:
+          type: Available
+          status: "True"
+        wait_timeout: 150

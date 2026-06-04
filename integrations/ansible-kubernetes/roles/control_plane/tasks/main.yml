@@ -1,0 +1,98 @@
+---
+# Initialise the control plane, lay down kubeconfig, install Calico, and
+# publish a join command the workers will pick up.
+
+- name: Check whether the control plane is already initialised
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_admin
+
+- name: Pull control-plane images ahead of init
+  ansible.builtin.command: kubeadm config images pull
+  when: not kubeadm_admin.stat.exists
+  changed_when: true
+
+- name: Initialise the cluster with kubeadm
+  ansible.builtin.command: >
+    kubeadm init
+    --pod-network-cidr={{ pod_network_cidr }}
+    --apiserver-advertise-address={{ ansible_host }}
+    --node-name={{ inventory_hostname }}
+  args:
+    creates: /etc/kubernetes/admin.conf
+  register: kubeadm_init
+
+- name: Create .kube directory for the login user
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0750"
+
+- name: Install kubeconfig for the login user
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    remote_src: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+
+- name: Detect the latest Calico release
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/projectcalico/calico/releases/latest
+    return_content: true
+  register: calico_release
+
+- name: Set the Calico version fact
+  ansible.builtin.set_fact:
+    calico_version: "{{ calico_release.json.tag_name }}"
+
+- name: Install the Calico operator CRDs
+  ansible.builtin.command: >
+    kubectl --kubeconfig /etc/kubernetes/admin.conf apply --server-side --force-conflicts
+    -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/operator-crds.yaml
+  register: crds_apply
+  changed_when: "'created' in crds_apply.stdout or 'configured' in crds_apply.stdout"
+
+- name: Install the Tigera (Calico) operator
+  ansible.builtin.command: >
+    kubectl --kubeconfig /etc/kubernetes/admin.conf apply --server-side --force-conflicts
+    -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/tigera-operator.yaml
+  register: tigera_apply
+  changed_when: "'created' in tigera_apply.stdout or 'configured' in tigera_apply.stdout"
+
+- name: Wait for the Installation CRD to register
+  ansible.builtin.command: >
+    kubectl --kubeconfig /etc/kubernetes/admin.conf wait --for condition=established --timeout=90s
+    crd/installations.operator.tigera.io
+  changed_when: false
+
+- name: Render the Calico Installation manifest
+  ansible.builtin.template:
+    src: calico-custom-resources.yaml.j2
+    dest: /root/calico-custom-resources.yaml
+    mode: "0644"
+
+- name: Apply the Calico Installation
+  ansible.builtin.command: >
+    kubectl --kubeconfig /etc/kubernetes/admin.conf apply
+    -f /root/calico-custom-resources.yaml
+  register: calico_install
+  changed_when: "'created' in calico_install.stdout or 'configured' in calico_install.stdout"
+
+- name: Generate a worker join command
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: join_cmd
+  changed_when: false
+
+- name: Stash the join command for the worker play
+  ansible.builtin.set_fact:
+    kubeadm_join_command: "{{ join_cmd.stdout }}"
+
+- name: Fetch the admin kubeconfig to the Ansible controller
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{ playbook_dir }}/admin.conf"
+    flat: true

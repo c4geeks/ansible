@@ -1,0 +1,38 @@
+---
+- name: Prepare every node for Kubernetes
+  hosts: k8s_cluster
+  become: true
+  roles:
+    - common
+
+- name: Bring up the control plane
+  hosts: control_plane
+  become: true
+  roles:
+    - control_plane
+
+- name: Join the worker nodes
+  hosts: workers
+  become: true
+  roles:
+    - worker
+
+- name: Wait for all nodes to report Ready
+  hosts: control_plane
+  become: true
+  tasks:
+    - name: Wait for nodes to be Ready
+      ansible.builtin.command: >
+        kubectl --kubeconfig /etc/kubernetes/admin.conf
+        wait --for=condition=Ready nodes --all --timeout=180s
+      register: nodes_ready
+      changed_when: false
+
+    - name: Show the cluster
+      ansible.builtin.command: kubectl --kubeconfig /etc/kubernetes/admin.conf get nodes -o wide
+      register: get_nodes
+      changed_when: false
+
+    - name: Cluster nodes
+      ansible.builtin.debug:
+        var: get_nodes.stdout_lines

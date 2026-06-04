@@ -1,0 +1,39 @@
+---
+# Install a Helm chart with Ansible. metrics-server powers `kubectl top`.
+- name: Install metrics-server with Helm
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    kubeconfig: "{{ lookup('env', 'HOME') }}/ansible-k8s/admin.conf"
+  tasks:
+    - name: Add the metrics-server Helm repository
+      kubernetes.core.helm_repository:
+        name: metrics-server
+        repo_url: https://kubernetes-sigs.github.io/metrics-server/
+
+    - name: Install or upgrade the metrics-server release
+      kubernetes.core.helm:
+        kubeconfig: "{{ kubeconfig }}"
+        name: metrics-server
+        chart_ref: metrics-server/metrics-server
+        release_namespace: kube-system
+        state: present
+        update_repo_cache: true
+        # kubeadm issues self-signed kubelet certs, so skip TLS verification to it.
+        values:
+          args:
+            - --kubelet-insecure-tls
+
+    - name: Wait for the metrics-server rollout
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: apps/v1
+        kind: Deployment
+        name: metrics-server
+        namespace: kube-system
+        wait: true
+        wait_condition:
+          type: Available
+          status: "True"
+        wait_timeout: 150

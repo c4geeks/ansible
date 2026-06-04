@@ -1,0 +1,133 @@
+---
+# Manage workloads on the cluster with the kubernetes.core collection.
+# Runs on the Ansible controller and talks to the API server over the kubeconfig.
+- name: Deploy a demo web app with Ansible
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    kubeconfig: "{{ lookup('env', 'HOME') }}/ansible-k8s/admin.conf"
+    app_namespace: demo
+  tasks:
+    - name: Create the namespace
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: v1
+        kind: Namespace
+        name: "{{ app_namespace }}"
+        state: present
+
+    - name: Publish the landing page as a ConfigMap
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: web-content
+            namespace: "{{ app_namespace }}"
+          data:
+            index.html: |
+              <h1>Deployed by Ansible</h1>
+              <p>nginx on Kubernetes, managed end to end with kubernetes.core.</p>
+
+    - name: Store an app secret
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: web-secret
+            namespace: "{{ app_namespace }}"
+          type: Opaque
+          stringData:
+            api-key: rotate-me-in-vault
+
+    - name: Deploy the web application
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: web
+            namespace: "{{ app_namespace }}"
+            labels:
+              app: web
+          spec:
+            replicas: 3
+            selector:
+              matchLabels:
+                app: web
+            template:
+              metadata:
+                labels:
+                  app: web
+              spec:
+                containers:
+                  - name: nginx
+                    image: nginx:1.27
+                    ports:
+                      - containerPort: 80
+                    volumeMounts:
+                      - name: content
+                        mountPath: /usr/share/nginx/html
+                    env:
+                      - name: API_KEY
+                        valueFrom:
+                          secretKeyRef:
+                            name: web-secret
+                            key: api-key
+                volumes:
+                  - name: content
+                    configMap:
+                      name: web-content
+
+    - name: Expose the app on a NodePort
+      kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: web
+            namespace: "{{ app_namespace }}"
+          spec:
+            type: NodePort
+            selector:
+              app: web
+            ports:
+              - port: 80
+                targetPort: 80
+                nodePort: 30080
+
+    - name: Wait until the deployment is Available
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        api_version: apps/v1
+        kind: Deployment
+        name: web
+        namespace: "{{ app_namespace }}"
+        wait: true
+        wait_condition:
+          type: Available
+          status: "True"
+        wait_timeout: 150
+
+    - name: List the running pods
+      kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig }}"
+        kind: Pod
+        namespace: "{{ app_namespace }}"
+        label_selectors:
+          - app=web
+      register: web_pods
+
+    - name: Show pod names and the nodes they landed on
+      ansible.builtin.debug:
+        msg: "{{ web_pods.resources | map(attribute='metadata.name') | zip(web_pods.resources | map(attribute='spec.nodeName')) | list }}"

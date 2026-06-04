@@ -1,0 +1,14 @@
+---
+# Two of the playbooks here use filters that ship in collections, not in
+# ansible-core: json_query (community.general) and ipaddr (ansible.utils).
+# The ranges target the ansible-core 2.16 that ships in Rocky Linux 10 and
+# Ubuntu 24.04. Bump them after you upgrade ansible-core.
+#
+# Install:  ansible-galaxy collection install -r requirements.yml
+# Then also install the Python backends the filters call:
+#   pip3 install --user jmespath netaddr
+collections:
+  - name: community.general
+    version: ">=10.0.0,<11.0.0"   # json_query lives here
+  - name: ansible.utils
+    version: ">=2.0.0,<6.0.0"     # ipaddr lives here

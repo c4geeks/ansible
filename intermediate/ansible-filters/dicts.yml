@@ -1,0 +1,41 @@
+---
+# Dictionary transformation filters
+- name: Dictionary filters
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    limits:
+      cpu: "2"
+      mem: "512Mi"
+    base_cfg:
+      port: 8080
+      tls: false
+      workers: 2
+    override_cfg:
+      tls: true
+      workers: 8
+  tasks:
+    - name: dict2items turns a map into a list of key/value pairs
+      ansible.builtin.debug:
+        msg: "{{ limits | dict2items }}"
+
+    - name: items2dict turns it back
+      ansible.builtin.debug:
+        msg: >-
+          {{ [{'key': 'a', 'value': 1}, {'key': 'b', 'value': 2}] | items2dict }}
+
+    - name: combine merges dicts, right side wins
+      ansible.builtin.debug:
+        msg: "{{ base_cfg | combine(override_cfg) }}"
+
+    - name: combine recursive merges nested dicts
+      ansible.builtin.debug:
+        msg: "{{ {'a': {'x': 1}} | combine({'a': {'y': 2}}, recursive=True) }}"
+
+    - name: iterate a dict in a loop with dict2items
+      ansible.builtin.debug:
+        msg: "{{ item.key }} = {{ item.value }}"
+      loop: "{{ limits | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"

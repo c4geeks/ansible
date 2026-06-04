@@ -1,0 +1,30 @@
+---
+# Numeric and type-cast filters
+- name: Numbers and casting
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    raw_count: "42"
+    ratio: 3.14159
+    disk_bytes: 5368709120
+  tasks:
+    - name: int and float cast strings to numbers
+      ansible.builtin.debug:
+        msg: "sum={{ (raw_count | int) + 8 }} half={{ (raw_count | int) / 2 }}"
+
+    - name: round controls precision
+      ansible.builtin.debug:
+        msg: "round0={{ ratio | round }} round2={{ ratio | round(2) }}"
+
+    - name: human_readable formats bytes
+      ansible.builtin.debug:
+        msg: "{{ disk_bytes | human_readable }}"
+
+    - name: human_to_bytes parses a size string
+      ansible.builtin.debug:
+        msg: "{{ '2.5 GB' | human_to_bytes }}"
+
+    - name: int has a base argument for hex and binary
+      ansible.builtin.debug:
+        msg: "hex={{ '0x1F' | int(base=16) }} bin={{ '1011' | int(base=2) }}"

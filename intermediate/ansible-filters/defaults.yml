@@ -1,0 +1,30 @@
+---
+# Null-safety and selection filters
+- name: Defaults, mandatory, ternary
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    user_port: ""
+    timeout_s: 30
+    feature_on: true
+  tasks:
+    - name: default fills an undefined or empty value
+      ansible.builtin.debug:
+        msg: "port={{ user_port | default('8080', true) }} timeout={{ missing_var | default(10) }}"
+
+    - name: ternary picks one of two values from a boolean
+      ansible.builtin.debug:
+        msg: "state={{ feature_on | ternary('enabled', 'disabled') }}"
+
+    - name: ternary with a third arm for None
+      ansible.builtin.debug:
+        msg: "{{ maybe_none | ternary('yes', 'no', 'unset') }}"
+      vars:
+        maybe_none: null
+
+    - name: default(omit) drops a parameter entirely
+      ansible.builtin.debug:
+        msg: "owner would be {{ file_owner | default(omit) }}"
+      vars:
+        file_owner: !!null

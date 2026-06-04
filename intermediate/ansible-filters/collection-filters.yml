@@ -1,0 +1,31 @@
+---
+# Filters that ship inside collections, not ansible-core
+- name: Collection-provided filters
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    pods:
+      items:
+        - { metadata: { name: web-1 }, status: { phase: Running } }
+        - { metadata: { name: web-2 }, status: { phase: Pending } }
+        - { metadata: { name: db-1 },  status: { phase: Running } }
+    cidr: "10.0.1.0/24"
+    addr: "10.0.1.45/24"
+  tasks:
+    - name: json_query (community.general) queries nested data with JMESPath
+      ansible.builtin.debug:
+        msg: "{{ pods | community.general.json_query(query) }}"
+      vars:
+        query: "items[?status.phase=='Running'].metadata.name"
+
+    - name: ipaddr (ansible.utils) validates and slices addresses
+      ansible.builtin.debug:
+        msg: >-
+          network={{ cidr | ansible.utils.ipaddr('network') }}
+          host_ip={{ addr | ansible.utils.ipaddr('address') }}
+          netmask={{ cidr | ansible.utils.ipaddr('netmask') }}
+
+    - name: ipaddr can pick the Nth host in a range
+      ansible.builtin.debug:
+        msg: "{{ cidr | ansible.utils.ipaddr('10') | ansible.utils.ipaddr('address') }}"

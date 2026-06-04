@@ -1,0 +1,40 @@
+---
+# Encoding, hashing, and serialization filters
+- name: Encoding and serialization
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    secret: "S3cr3t-Token"
+    payload:
+      service: nginx
+      replicas: 3
+      ports: [80, 443]
+  tasks:
+    - name: base64 round trip
+      ansible.builtin.debug:
+        msg: >-
+          enc={{ secret | b64encode }}
+          dec={{ secret | b64encode | b64decode }}
+
+    - name: hash and checksum
+      ansible.builtin.debug:
+        msg: >-
+          sha1={{ secret | hash('sha1') }}
+          md5={{ secret | hash('md5') }}
+
+    - name: password_hash for /etc/shadow style entries
+      ansible.builtin.debug:
+        msg: "{{ secret | password_hash('sha512', 'fixedsaltvalue') }}"
+
+    - name: to_json and to_nice_json serialize a structure
+      ansible.builtin.debug:
+        msg: "{{ payload | to_nice_json }}"
+
+    - name: from_json parses a JSON string back into data
+      ansible.builtin.debug:
+        msg: "{{ ('{\"a\": 1, \"b\": [2, 3]}' | from_json).b }}"
+
+    - name: to_nice_yaml emits a YAML block
+      ansible.builtin.debug:
+        msg: "{{ payload | to_nice_yaml }}"

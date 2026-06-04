@@ -1,0 +1,36 @@
+---
+# String transformation filters
+- name: String filters
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    raw: "  Prod-Web-01.Example.COM  "
+    csv: "nginx,redis,postgres"
+    logline: "2026-06-04 12:01:33 ERROR auth failed for admin from 10.0.1.7"
+  tasks:
+    - name: case and whitespace
+      ansible.builtin.debug:
+        msg: "{{ raw | trim | lower }}"
+
+    - name: replace and regex_replace
+      ansible.builtin.debug:
+        msg: >-
+          plain={{ raw | trim | replace('-', '_') }}
+          regex={{ raw | trim | regex_replace('\\.example\\.com$', '', ignorecase=True) }}
+
+    - name: split a CSV into a list
+      ansible.builtin.debug:
+        msg: "{{ csv | split(',') }}"
+
+    - name: join a list back into a string
+      ansible.builtin.debug:
+        msg: "{{ ['a', 'b', 'c'] | join(' -> ') }}"
+
+    - name: regex_search pulls the first match
+      ansible.builtin.debug:
+        msg: "ip={{ logline | regex_search('\\d+\\.\\d+\\.\\d+\\.\\d+') }}"
+
+    - name: regex_findall pulls every match
+      ansible.builtin.debug:
+        msg: "{{ 'a1 b2 c3' | regex_findall('([a-z])(\\d)') }}"

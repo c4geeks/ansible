@@ -1,0 +1,28 @@
+---
+# A realistic transform: turn raw inventory data into a config-ready structure
+# by chaining filters in a single expression.
+- name: Build an upstream pool from host data
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    fleet:
+      - { name: web01, ip: 10.0.1.11, role: web,  weight: 5,  drain: false }
+      - { name: web02, ip: 10.0.1.12, role: web,  weight: 3,  drain: true  }
+      - { name: web03, ip: 10.0.1.13, role: web,  weight: 5,  drain: false }
+      - { name: db01,  ip: 10.0.1.20, role: db,    weight: 1,  drain: false }
+  tasks:
+    - name: select active web nodes, sort by weight, render server lines
+      ansible.builtin.debug:
+        msg: "{{ lines }}"
+      vars:
+        active: "{{ fleet | selectattr('role', 'equalto', 'web') | rejectattr('drain') | sort(attribute='weight', reverse=True) }}"
+        lines: "{{ active | map(attribute='ip') | map('regex_replace', '^', 'server ') | map('regex_replace', '$', ':8080 check') | list }}"
+
+    - name: total capacity weight of the active pool
+      ansible.builtin.debug:
+        msg: "active_weight={{ fleet | selectattr('role', 'equalto', 'web') | rejectattr('drain') | map(attribute='weight') | map('int') | sum }}"
+
+    - name: group the fleet by role in one expression
+      ansible.builtin.debug:
+        msg: "{{ fleet | groupby('role') | map('first') | list }}"

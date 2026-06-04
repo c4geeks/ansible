@@ -5,6 +5,3 @@ k8s_minor: "v1.36" # https://kubernetes.io/releases/
 # Pod network CIDR handed to kubeadm and Calico.
 # MUST NOT overlap your node/LAN subnet (the lab nodes are on 192.168.1.0/24).
 pod_network_cidr: "10.244.0.0/16"
-
-# Pause (sandbox) image containerd should use. Keep it in step with the kubelet.
-pause_image: "registry.k8s.io/pause:3.10"

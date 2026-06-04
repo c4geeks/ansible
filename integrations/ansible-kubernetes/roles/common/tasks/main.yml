@@ -70,13 +70,6 @@
     line: '            SystemdCgroup = true'
   notify: Restart containerd
 
-- name: Pin the sandbox (pause) image to match the kubelet
-  ansible.builtin.replace:
-    path: /etc/containerd/config.toml
-    regexp: 'sandbox_image = ".*"'
-    replace: 'sandbox_image = "{{ pause_image }}"'
-  notify: Restart containerd
-
 - name: Add the Kubernetes apt signing key
   ansible.builtin.get_url:
     url: "https://pkgs.k8s.io/core:/stable:/{{ k8s_minor }}/deb/Release.key"
